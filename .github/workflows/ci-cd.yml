@@ -1,0 +1,61 @@
+name: CI-CD - FastAPI Clients API
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+  pull_request:
+    branches:
+      - main
+      - develop
+
+jobs:
+  build-test-deploy:
+    runs-on: ubuntu-latest
+
+    services:
+      mongodb:
+        image: mongo:5.0
+        ports:
+          - 27017:27017
+        options: >-
+          --health-cmd "mongo --eval 'db.runCommand({ ping: 1 })'"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        env:
+          MONGO_INITDB_ROOT_USERNAME: root
+          MONGO_INITDB_ROOT_PASSWORD: example
+          MONGO_INITDB_DATABASE: clients_db
+
+    steps:
+      - name: Cloner le dépôt
+        uses: actions/checkout@v3
+
+      - name: Installer Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.12"
+
+      - name: Installer les dépendances
+        run: |
+          pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Lancer FastAPI en arrière-plan
+        run: |
+          nohup uvicorn app.main:app --host 0.0.0.0 --port 8000 &
+          sleep 5  # Laisser le temps à l'API de démarrer
+
+      - name: Exécuter les tests unitaires
+        run: |
+          pytest
+
+      - name: Build de l’image Docker
+        run: |
+          docker build -t clients-api .
+
+      - name: Sauvegarder l’image Docker
+        run: |
+          docker save clients-api > clients-api.tar
