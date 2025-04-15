@@ -1,2 +1,27 @@
+# --- Core dependencies ---
 fastapi
-uvicorn
+uvicorn[standard]
+
+# --- MongoDB ---
+motor
+
+# --- RabbitMQ ---
+aio-pika
+
+# --- Authentification JWT ---
+python-jose[cryptography]
+passlib[bcrypt]
+
+# --- Tests ---
+pytest
+httpx
+testcontainers[mongodb, rabbitmq]
+
+# --- Linting ---
+pylint
+
+# --- Monitoring ---
+prometheus-fastapi-instrumentator
+
+# --- Autres utilitaires ---
+python-dotenv
